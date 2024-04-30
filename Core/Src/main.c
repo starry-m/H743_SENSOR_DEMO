@@ -25,6 +25,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "app_mems.h"
+
 
 /* USER CODE END Includes */
 
@@ -57,7 +59,21 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/* USER CODE BEGIN 1 */
+#include "stdio.h"
 
+#ifdef __GNUC__
+
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+
+PUTCHAR_PROTOTYPE
+{
+
+  HAL_UART_Transmit(&huart3, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
+  return ch;
+}
+#endif
+/* USER CODE END 1 */
 /* USER CODE END 0 */
 
 /**
@@ -89,11 +105,13 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_ETH_Init();
+//  MX_ETH_Init();
   MX_USART3_UART_Init();
-  MX_USB_OTG_FS_PCD_Init();
+//  MX_USB_OTG_FS_PCD_Init();
   /* USER CODE BEGIN 2 */
-
+  printf("are you ok?\n");
+  HAL_UART_Transmit(&huart3, "hello\n", 6, 10000);
+  MX_MEMS_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -103,8 +121,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
-	  HAL_Delay(300);
+	  MX_MEMS_Process();
+//	  HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
+//	  HAL_Delay(300);
 
   }
   /* USER CODE END 3 */

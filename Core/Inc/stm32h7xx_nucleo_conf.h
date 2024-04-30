@@ -43,7 +43,7 @@
   * @{
   */
 /* COM Feature define */
-#define USE_BSP_COM_FEATURE                 0U
+#define USE_BSP_COM_FEATURE                 1U
 
 /* COM define */
 #define USE_COM_LOG                         1U
@@ -59,6 +59,9 @@
 
 /* UART1 Baud rate in bps  */
 #define BUS_UART1_BAUDRATE                  9600U /* baud rate of UARTn = 9600 baud */
+
+#define USE_NUCLEO_144
+#define USE_NUCLEO_H743ZI
 
 /**
   * @}
