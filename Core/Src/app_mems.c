@@ -29,6 +29,9 @@ extern "C" {
 #include "iks4a1_env_sensors.h"
 #include "stm32h7xx_nucleo.h"
 #include "math.h"
+#include "mems_control.h"
+
+
 
 /* Private typedef -----------------------------------------------------------*/
 typedef struct displayFloatToInt_s {
@@ -53,7 +56,7 @@ static int32_t PushButtonState = GPIO_PIN_RESET;
 static float TempValue;
 static float PressValue;
 static float HumValue;
-static int16_t QvarValue;
+__IO static int16_t QvarValue;
 
 /* Private function prototypes -----------------------------------------------*/
 static void floatToInt(float in, displayFloatToInt_t *out_value, int32_t dec_prec);
@@ -92,11 +95,18 @@ void MX_MEMS_Process(void)
 {
   /* USER CODE BEGIN MEMS_Process_PreTreatment */
 //    BSP_SENSOR_TEMP_GetValue(&TempValue);
+	uint8_t state_back=0;
     BSP_SENSOR_QVAR_GetValue(&QvarValue);
 //	BSP_SENSOR_PRESS_GetValue(&PressValue);
     // printf("{one:%d}\n", (int)QvarValue/78);
-    printf("%.2f\n", (float)QvarValue/78.0f);
-    HAL_Delay(1);
+//    printf("%.2f\n", (float)QvarValue/78.0f);
+//    QvarValue =78;
+    state_back=QVAR_action_check_statemachine((int)QvarValue/78);
+    if(state_back)
+    {
+    	printf("result:%d\n", state_back);
+    }
+    HAL_Delay(5);
     /* USER CODE END MEMS_Process_PreTreatment */
 
   // MX_IKS4A1_DataLogTerminal_Process();
