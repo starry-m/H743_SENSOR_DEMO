@@ -48,6 +48,13 @@ static IKS4A1_ENV_SENSOR_Capabilities_t EnvCapabilities[IKS4A1_ENV_INSTANCES_NBR
 static char dataOut[MAX_BUF_SIZE];
 static int32_t PushButtonState = GPIO_PIN_RESET;
 
+
+/*my variables */
+static float TempValue;
+static float PressValue;
+static float HumValue;
+static int16_t QvarValue;
+
 /* Private function prototypes -----------------------------------------------*/
 static void floatToInt(float in, displayFloatToInt_t *out_value, int32_t dec_prec);
 static void Accelero_Sensor_Handler(uint32_t Instance);
@@ -84,10 +91,15 @@ void MX_MEMS_Init(void)
 void MX_MEMS_Process(void)
 {
   /* USER CODE BEGIN MEMS_Process_PreTreatment */
+//    BSP_SENSOR_TEMP_GetValue(&TempValue);
+    BSP_SENSOR_QVAR_GetValue(&QvarValue);
+//	BSP_SENSOR_PRESS_GetValue(&PressValue);
+    // printf("{one:%d}\n", (int)QvarValue/78);
+    printf("%.2f\n", (float)QvarValue/78.0f);
+    HAL_Delay(1);
+    /* USER CODE END MEMS_Process_PreTreatment */
 
-  /* USER CODE END MEMS_Process_PreTreatment */
-
-  MX_IKS4A1_DataLogTerminal_Process();
+  // MX_IKS4A1_DataLogTerminal_Process();
 
   /* USER CODE BEGIN MEMS_Process_PostTreatment */
 
@@ -118,12 +130,13 @@ void MX_IKS4A1_DataLogTerminal_Init(void)
   snprintf(dataOut, MAX_BUF_SIZE, "\r\n__________________________________________________________________________\r\n");
   printf("%s", dataOut);
 
+  /*1*/
   IKS4A1_MOTION_SENSOR_Init(IKS4A1_LSM6DSV16X_0, MOTION_ACCELERO | MOTION_GYRO);
-
+ /*3*/
   IKS4A1_MOTION_SENSOR_Init(IKS4A1_LSM6DSO16IS_0, MOTION_ACCELERO | MOTION_GYRO);
-
+ /*2*/
   IKS4A1_MOTION_SENSOR_Init(IKS4A1_LIS2DUXS12_0, MOTION_ACCELERO);
-
+ /*0*/
   IKS4A1_MOTION_SENSOR_Init(IKS4A1_LIS2MDL_0, MOTION_MAGNETO);
 
   for(i = 0; i < IKS4A1_MOTION_INSTANCES_NBR; i++)
@@ -146,11 +159,11 @@ void MX_IKS4A1_DataLogTerminal_Init(void)
              (int)out_value_odr.out_dec, (int)MotionCapabilities[i].MagMaxFS);
     printf("%s", dataOut);
   }
-
+ /*2*/
   IKS4A1_ENV_SENSOR_Init(IKS4A1_SHT40AD1B_0, ENV_TEMPERATURE | ENV_HUMIDITY);
-
+ /*1*/
   IKS4A1_ENV_SENSOR_Init(IKS4A1_LPS22DF_0, ENV_TEMPERATURE | ENV_PRESSURE);
-
+ /*0*/
   IKS4A1_ENV_SENSOR_Init(IKS4A1_STTS22H_0, ENV_TEMPERATURE);
 
   for(i = 0; i < IKS4A1_ENV_INSTANCES_NBR; i++)

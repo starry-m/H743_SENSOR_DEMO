@@ -110,6 +110,7 @@ int main(void)
 //  MX_USB_OTG_FS_PCD_Init();
   /* USER CODE BEGIN 2 */
   printf("are you ok?\n");
+
   HAL_UART_Transmit(&huart3, "hello\n", 6, 10000);
   MX_MEMS_Init();
   /* USER CODE END 2 */
