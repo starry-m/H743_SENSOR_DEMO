@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "lsm6dsv16x_reg.h": "c",
+        "mems_control.h": "c",
+        "iks4a1_motion_sensors.h": "c",
+        "iks4a1_motion_sensors_ex.h": "c",
+        "iks4a1_env_sensors.h": "c",
+        "lsm6dsv16x.h": "c"
+    }
+}
