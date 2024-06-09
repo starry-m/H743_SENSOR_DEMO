@@ -12,7 +12,6 @@
 
 #include "main.h"
 
-
 extern void *MotionCompObj[IKS4A1_MOTION_INSTANCES_NBR];
 
 void BSP_SENSOR_QVAR_GetValue(int16_t *Axes)
@@ -43,33 +42,33 @@ void BSP_SENSOR_QVAR_GetValue(int16_t *Axes)
 
 uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
 {
-	__IO static uint32_t tick_cur =0;
+    __IO static uint32_t tick_cur = 0;
     __IO static uint32_t tick_prev = 0;
     static uint8_t cur_state = ACTION_IDLE;
     static uint8_t prev_state = ACTION_IDLE;
     static uint8_t LEFT_PRESSED_TICK = 0;
-    static uint8_t LEFT_PRESSED_flag=0;
+    static uint8_t LEFT_PRESSED_flag = 0;
     static uint8_t RIGHT_PRESSED_TICK = 0;
-    static uint8_t RIGHT_PRESSED_flag=0;
+    static uint8_t RIGHT_PRESSED_flag = 0;
 
-    static uint8_t RIGHT_SLIP_TICK=0;
-    static uint8_t RIGHT_SLIP_FLAG=0;
-    static uint8_t LEFT_SLIP_TICK=0;
-    static uint8_t LEFT_SLIP_FLAG=0;
+    static uint8_t RIGHT_SLIP_TICK = 0;
+    static uint8_t RIGHT_SLIP_FLAG = 0;
+    static uint8_t LEFT_SLIP_TICK = 0;
+    static uint8_t LEFT_SLIP_FLAG = 0;
     tick_cur = HAL_GetTick();
-//    printf("--qvr=%d\n", qvar_value);
+    //    printf("--qvr=%d\n", qvar_value);
     switch (cur_state)
     {
     case ACTION_IDLE:
         if (qvar_value > JUDGE_UP_VALUE)
         {
-        	tick_prev = tick_cur;
+            tick_prev = tick_cur;
             cur_state = ACTION_FIRST_UP;
             printf("\r\n----ACTION_IDLE->ACTION_FIRST_UP---\r\n");
         }
         else if (qvar_value < JUDGE_DOWN_VALUE)
         {
-        	tick_prev = tick_cur;
+            tick_prev = tick_cur;
             cur_state = ACTION_FIRST_DOWN;
             printf("\r\n----ACTION_IDLE->ACTION_FIRST_DOWN---\r\n");
         }
@@ -81,89 +80,111 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
         tick_prev = tick_cur;
         break;
     case ACTION_FIRST_UP:
-    	if ((qvar_value > JUDGE_UP_VALUE)&&LEFT_PRESSED_flag==0)
-    	{
-    		LEFT_PRESSED_TICK++;
-    		if(LEFT_PRESSED_TICK>3)
-    		{
-    			LEFT_PRESSED_flag=1;
-    			LEFT_PRESSED_TICK=0;
-    			printf("\r\n----LEFT_PRESSED_TICK>3---\r\n");
-
-    		}
-    	}
-    	if(LEFT_PRESSED_flag)
-    	{
-
-			if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
-			{
-				LEFT_PRESSED_flag=0;
-				cur_state = ACTION_END_MIDDLE;
-				tick_prev = tick_cur;
-				prev_state = ACTION_FIRST_UP;
-				printf("\r\n----ACTION_FIRST_UP->ACTION_END_MIDDLE---\r\n");
-			}
-			else if (qvar_value < JUDGE_DOWN_VALUE)
-			{
-				LEFT_PRESSED_flag=0;
-				tick_prev = tick_cur;
-				cur_state = ACTION_SECOND_DOWN;
-				prev_state = ACTION_FIRST_UP;
-				printf("\r\n----ACTION_FIRST_UP->ACTION_SECOND_DOWN---\r\n");
-			}
-    	}
-        if ((tick_cur - tick_prev) > 50)
+        if ((qvar_value > JUDGE_UP_VALUE) && LEFT_PRESSED_flag == 0)
         {
-        	if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
-        	{
-        		printf("\r\n----ACTION_FIRST_UP->ACTION_IDLE---\r\n");
-					cur_state = ACTION_IDLE;
-					prev_state = ACTION_IDLE;
-        	}
+            LEFT_PRESSED_TICK++;
+            if (LEFT_PRESSED_TICK > 3)
+            {
+                LEFT_PRESSED_flag = 1;
+                LEFT_PRESSED_TICK = 0;
+                printf("\r\n----LEFT_PRESSED_TICK>3---\r\n");
+            }
+        }
+
+        if ((tick_cur - tick_prev) > 500)
+        {
+            if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
+            {
+                printf("\r\n----RESULT_LEFT_LONG_PRESSED---\r\n");
+                cur_state = ACTION_IDLE;
+                prev_state = ACTION_IDLE;
+                return RESULT_LEFT_LONG_PRESSED;
+            }
+        }
+        else if ((tick_cur - tick_prev) > 50)
+        {
+            if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
+            {
+                printf("\r\n----ACTION_FIRST_UP->ACTION_IDLE---\r\n");
+                cur_state = ACTION_IDLE;
+                prev_state = ACTION_IDLE;
+            }
+        }
+
+        if (LEFT_PRESSED_flag)
+        {
+
+            if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
+            {
+                LEFT_PRESSED_flag = 0;
+                cur_state = ACTION_END_MIDDLE;
+                tick_prev = tick_cur;
+                prev_state = ACTION_FIRST_UP;
+                printf("\r\n----ACTION_FIRST_UP->ACTION_END_MIDDLE---\r\n");
+            }
+            else if (qvar_value < JUDGE_DOWN_VALUE)
+            {
+                LEFT_PRESSED_flag = 0;
+                tick_prev = tick_cur;
+                cur_state = ACTION_SECOND_DOWN;
+                prev_state = ACTION_FIRST_UP;
+                printf("\r\n----ACTION_FIRST_UP->ACTION_SECOND_DOWN---\r\n");
+            }
         }
 
         break;
 
     case ACTION_FIRST_DOWN:
-    	if ((qvar_value < JUDGE_DOWN_VALUE)&&RIGHT_PRESSED_flag==0)
-		{
-    		RIGHT_PRESSED_TICK++;
-			if(RIGHT_PRESSED_TICK>3)
-			{
-				RIGHT_PRESSED_flag=1;
-				RIGHT_PRESSED_TICK=0;
-				printf("\r\n----LEFT_PRESSED_TICK>3---\r\n");
-
-			}
-		}
-		if(RIGHT_PRESSED_flag)
-		{
-
-			if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
-			{
-				RIGHT_PRESSED_flag=0;
-				cur_state = ACTION_END_MIDDLE;
-				tick_prev = tick_cur;
-				prev_state = ACTION_FIRST_DOWN;
-				printf("\r\n----ACTION_FIRST_DOWN->ACTION_END_MIDDLE---\r\n");
-			}
-			else if (qvar_value > JUDGE_UP_VALUE)
-			{
-				RIGHT_PRESSED_flag=0;
-				tick_prev = tick_cur;
-				cur_state = ACTION_SECOND_UP;
-				prev_state = ACTION_FIRST_DOWN;
-				printf("\r\n----ACTION_FIRST_DOWN->ACTION_SECOND_UP---\r\n");
-			}
-		}
-        if ((tick_cur - tick_prev) > 50)
+        if ((qvar_value < JUDGE_DOWN_VALUE) && RIGHT_PRESSED_flag == 0)
         {
-        	if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
-        	{
-        		printf("\r\n----ACTION_FIRST_UP->ACTION_IDLE---\r\n");
-					cur_state = ACTION_IDLE;
-					prev_state = ACTION_IDLE;
-        	}
+            RIGHT_PRESSED_TICK++;
+            if (RIGHT_PRESSED_TICK > 3)
+            {
+                RIGHT_PRESSED_flag = 1;
+                RIGHT_PRESSED_TICK = 0;
+                printf("\r\n----RIGHT_PRESSED_TICK>3---\r\n");
+            }
+        }
+
+        if ((tick_cur - tick_prev) > 500)
+        {
+            if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
+            {
+                printf("\r\n----RESULT_RIGHT_LONG_PRESSED---\r\n");
+                cur_state = ACTION_IDLE;
+                prev_state = ACTION_IDLE;
+                return RESULT_RIGHT_LONG_PRESSED;
+            }
+        }
+        else if ((tick_cur - tick_prev) > 50)
+        {
+            if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
+            {
+                printf("\r\n----ACTION_FIRST_UP->ACTION_IDLE---\r\n");
+                cur_state = ACTION_IDLE;
+                prev_state = ACTION_IDLE;
+            }
+        }
+
+        if (RIGHT_PRESSED_flag)
+        {
+
+            if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
+            {
+                RIGHT_PRESSED_flag = 0;
+                cur_state = ACTION_END_MIDDLE;
+                tick_prev = tick_cur;
+                prev_state = ACTION_FIRST_DOWN;
+                printf("\r\n----ACTION_FIRST_DOWN->ACTION_END_MIDDLE---\r\n");
+            }
+            else if (qvar_value > JUDGE_UP_VALUE)
+            {
+                RIGHT_PRESSED_flag = 0;
+                tick_prev = tick_cur;
+                cur_state = ACTION_SECOND_UP;
+                prev_state = ACTION_FIRST_DOWN;
+                printf("\r\n----ACTION_FIRST_DOWN->ACTION_SECOND_UP---\r\n");
+            }
         }
 
         break;
@@ -205,77 +226,73 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
 
         break;
     case ACTION_SECOND_UP:
-    	LEFT_SLIP_TICK++;
-		if(LEFT_SLIP_TICK>3 &&LEFT_SLIP_FLAG==0)
-		{
-			LEFT_SLIP_TICK=0;
-			LEFT_SLIP_FLAG=1;
+        LEFT_SLIP_TICK++;
+        if (LEFT_SLIP_TICK > 3 && LEFT_SLIP_FLAG == 0)
+        {
+            LEFT_SLIP_TICK = 0;
+            LEFT_SLIP_FLAG = 1;
+        }
+        if (LEFT_SLIP_FLAG)
+        {
+            if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
+            {
+                LEFT_SLIP_FLAG = 0;
+                LEFT_SLIP_TICK = 0;
+                if (ACTION_FIRST_MIDDLE == prev_state)
+                {
+                    //					printf("\r\n----RESULT_LEFT_DOUBLE_CLICK---\r\n");
+                    //					cur_state = ACTION_IDLE;
+                    //					/*右双击判断成功*/
+                    //					return RESULT_LEFT_DOUBLE_CLICK;
+                }
+                else if (ACTION_FIRST_DOWN == prev_state)
+                {
+                    printf("\r\n----RESULT_LEFT_SLIP---\r\n");
+                    cur_state = ACTION_IDLE;
+                    /*左滑判断成功*/
+                    return RESULT_LEFT_SLIP;
+                }
+            }
+        }
 
-		}
-		if(LEFT_SLIP_FLAG)
-		{
-			 if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
-			{
-				 LEFT_SLIP_FLAG=0;
-				 LEFT_SLIP_TICK=0;
-				if (ACTION_FIRST_MIDDLE == prev_state)
-				{
-//					printf("\r\n----RESULT_LEFT_DOUBLE_CLICK---\r\n");
-//					cur_state = ACTION_IDLE;
-//					/*右双击判断成功*/
-//					return RESULT_LEFT_DOUBLE_CLICK;
-				}
-				else if (ACTION_FIRST_DOWN == prev_state)
-				{
-					printf("\r\n----RESULT_LEFT_SLIP---\r\n");
-					cur_state = ACTION_IDLE;
-					/*左滑判断成功*/
-					return RESULT_LEFT_SLIP;
-				}
-			}
-
-		}
-
-		if ((tick_cur - tick_prev) > 100)
-		{
-			if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
-			{
-				cur_state = ACTION_IDLE;
-			}
-		}
+        if ((tick_cur - tick_prev) > 100)
+        {
+            if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
+            {
+                cur_state = ACTION_IDLE;
+            }
+        }
 
         break;
     case ACTION_SECOND_DOWN:
-    	RIGHT_SLIP_TICK++;
-    	if(RIGHT_SLIP_TICK>3 &&RIGHT_SLIP_FLAG==0)
-    	{
-    		RIGHT_SLIP_TICK=0;
-    		RIGHT_SLIP_FLAG=1;
-
-    	}
-    	if(RIGHT_SLIP_FLAG)
-    	{
-    		 if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
-			{
-    			 RIGHT_SLIP_FLAG=0;
-    			 RIGHT_SLIP_TICK=0;
-				if (ACTION_FIRST_MIDDLE == prev_state)
-				{
-					printf("\r\n----RESULT_LEFT_DOUBLE_CLICK---\r\n");
-					cur_state = ACTION_IDLE;
-					/*右双击判断成功*/
-					return RESULT_RIGHT_DOUBLE_CLICK;
-				}
-				else if (ACTION_FIRST_UP == prev_state)
-				{
-					printf("\r\n----RESULT_RIGHT_SLIP---\r\n");
-					cur_state = ACTION_IDLE;
-					/*右滑判断成功*/
-					return RESULT_RIGHT_SLIP;
-				}
-			}
-
-    	}
+        RIGHT_SLIP_TICK++;
+        if (RIGHT_SLIP_TICK > 3 && RIGHT_SLIP_FLAG == 0)
+        {
+            RIGHT_SLIP_TICK = 0;
+            RIGHT_SLIP_FLAG = 1;
+        }
+        if (RIGHT_SLIP_FLAG)
+        {
+            if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
+            {
+                RIGHT_SLIP_FLAG = 0;
+                RIGHT_SLIP_TICK = 0;
+                if (ACTION_FIRST_MIDDLE == prev_state)
+                {
+                    printf("\r\n----RESULT_LEFT_DOUBLE_CLICK---\r\n");
+                    cur_state = ACTION_IDLE;
+                    /*右双击判断成功*/
+                    return RESULT_RIGHT_DOUBLE_CLICK;
+                }
+                else if (ACTION_FIRST_UP == prev_state)
+                {
+                    printf("\r\n----RESULT_RIGHT_SLIP---\r\n");
+                    cur_state = ACTION_IDLE;
+                    /*右滑判断成功*/
+                    return RESULT_RIGHT_SLIP;
+                }
+            }
+        }
 
         if ((tick_cur - tick_prev) > 100)
         {
@@ -292,14 +309,14 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
         {
             if (ACTION_FIRST_UP == prev_state)
             {
-            	printf("\r\n----RESULT_LEFT_SINGEL_CLICK---\r\n");
+                printf("\r\n----RESULT_LEFT_SINGEL_CLICK---\r\n");
                 cur_state = ACTION_IDLE;
                 /*左单击判断成功*/
                 return RESULT_LEFT_SINGEL_CLICK;
             }
             else if (ACTION_FIRST_DOWN == prev_state)
             {
-            	printf("\r\n----RESULT_RIGHT_SINGEL_CLICK---\r\n");
+                printf("\r\n----RESULT_RIGHT_SINGEL_CLICK---\r\n");
                 cur_state = ACTION_IDLE;
                 /*右单击成功*/
                 return RESULT_RIGHT_SINGEL_CLICK;
