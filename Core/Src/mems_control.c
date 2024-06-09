@@ -55,6 +55,12 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
     static uint8_t RIGHT_SLIP_FLAG = 0;
     static uint8_t LEFT_SLIP_TICK = 0;
     static uint8_t LEFT_SLIP_FLAG = 0;
+
+    static uint8_t RIGHT_SLIP_BEFORE_TICK = 0;
+    static uint8_t RIGHT_SLIP_BEFORE_FLAG = 0;
+    static uint8_t LEFT_SLIP_BEFORE_TICK = 0;
+    static uint8_t LEFT_SLIP_BEFORE_FLAG = 0;
+
     tick_cur = HAL_GetTick();
     //    printf("--qvr=%d\n", qvar_value);
     switch (cur_state)
@@ -124,6 +130,16 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
             }
             else if (qvar_value < JUDGE_DOWN_VALUE)
             {
+                RIGHT_SLIP_BEFORE_TICK++;
+                if (RIGHT_SLIP_BEFORE_TICK > 3)
+                {
+                    RIGHT_SLIP_BEFORE_TICK = 0;
+                    RIGHT_SLIP_BEFORE_FLAG = 1;
+                }
+            }
+            if (RIGHT_SLIP_BEFORE_FLAG)
+            {
+                RIGHT_SLIP_BEFORE_FLAG = 0;
                 LEFT_PRESSED_flag = 0;
                 tick_prev = tick_cur;
                 cur_state = ACTION_SECOND_DOWN;
@@ -179,6 +195,16 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
             }
             else if (qvar_value > JUDGE_UP_VALUE)
             {
+                LEFT_SLIP_BEFORE_TICK++;
+                if (LEFT_SLIP_BEFORE_TICK > 3)
+                {
+                    LEFT_SLIP_BEFORE_TICK = 0;
+                    LEFT_SLIP_BEFORE_FLAG = 1;
+                }
+            }
+            if (LEFT_SLIP_BEFORE_FLAG)
+            {
+                LEFT_SLIP_BEFORE_FLAG = 0;
                 RIGHT_PRESSED_flag = 0;
                 tick_prev = tick_cur;
                 cur_state = ACTION_SECOND_UP;
@@ -261,6 +287,7 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
             {
                 cur_state = ACTION_IDLE;
             }
+            LEFT_SLIP_TICK = 0;
         }
 
         break;
@@ -300,6 +327,7 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
             {
                 cur_state = ACTION_IDLE;
             }
+            RIGHT_SLIP_TICK = 0;
         }
 
         break;
