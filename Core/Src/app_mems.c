@@ -106,7 +106,7 @@ void MX_MEMS_Process(void)
     {
     	printf("result:%d\n", state_back);
     }
-    HAL_Delay(5);
+//    HAL_Delay(5);
     /* USER CODE END MEMS_Process_PreTreatment */
 
   // MX_IKS4A1_DataLogTerminal_Process();
