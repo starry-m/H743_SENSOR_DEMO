@@ -49,7 +49,7 @@
 #define USE_COM_LOG                         1U
 
 /* IRQ priorities */
-#define BSP_BUTTON_USER_IT_PRIORITY         15U
+#define BSP_BUTTON_USER_IT_PRIORITY         14U
 
 /* I2C1 Frequency in Hz  */
 #define BUS_I2C1_FREQUENCY                  100000U /* Frequency of I2C1 = 100 KHz*/
@@ -60,8 +60,9 @@
 /* UART1 Baud rate in bps  */
 #define BUS_UART1_BAUDRATE                  9600U /* baud rate of UARTn = 9600 baud */
 
+
 #define USE_NUCLEO_144
-#define USE_NUCLEO_H743ZI
+#define USE_NUCLEO_H743ZI2
 
 /**
   * @}

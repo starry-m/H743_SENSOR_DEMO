@@ -5,6 +5,8 @@
         "iks4a1_motion_sensors.h": "c",
         "iks4a1_motion_sensors_ex.h": "c",
         "iks4a1_env_sensors.h": "c",
-        "lsm6dsv16x.h": "c"
+        "lsm6dsv16x.h": "c",
+        "app_mems.h": "c",
+        "stm32h7xx_nucleo.h": "c"
     }
 }

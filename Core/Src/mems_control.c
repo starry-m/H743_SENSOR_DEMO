@@ -18,6 +18,7 @@ void BSP_SENSOR_QVAR_GetValue(int16_t *Axes)
 {
     (void)LSM6DSV16X_QVAR_GetData(MotionCompObj[IKS4A1_LSM6DSV16X_0], Axes);
 }
+
 #define ACTION_IDLE 0
 #define ACTION_FIRST_UP 1
 #define ACTION_FIRST_DOWN 2
@@ -62,7 +63,7 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
     static uint8_t LEFT_SLIP_BEFORE_FLAG = 0;
 
     tick_cur = HAL_GetTick();
-    //    printf("--qvr=%d\n", qvar_value);
+    //    //printf("--qvr=%d\n", qvar_value);
     switch (cur_state)
     {
     case ACTION_IDLE:
@@ -70,13 +71,13 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
         {
             tick_prev = tick_cur;
             cur_state = ACTION_FIRST_UP;
-            printf("\r\n----ACTION_IDLE->ACTION_FIRST_UP---\r\n");
+            // printf("\r\n----ACTION_IDLE->ACTION_FIRST_UP---\r\n");
         }
         else if (qvar_value < JUDGE_DOWN_VALUE)
         {
             tick_prev = tick_cur;
             cur_state = ACTION_FIRST_DOWN;
-            printf("\r\n----ACTION_IDLE->ACTION_FIRST_DOWN---\r\n");
+            // printf("\r\n----ACTION_IDLE->ACTION_FIRST_DOWN---\r\n");
         }
         else
         {
@@ -93,7 +94,7 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
             {
                 LEFT_PRESSED_flag = 1;
                 LEFT_PRESSED_TICK = 0;
-                printf("\r\n----LEFT_PRESSED_TICK>3---\r\n");
+                // printf("\r\n----LEFT_PRESSED_TICK>3---\r\n");
             }
         }
 
@@ -101,7 +102,7 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
         {
             if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
             {
-                printf("\r\n----RESULT_LEFT_LONG_PRESSED---\r\n");
+                // printf("\r\n----RESULT_LEFT_LONG_PRESSED---\r\n");
                 cur_state = ACTION_IDLE;
                 prev_state = ACTION_IDLE;
                 return RESULT_LEFT_LONG_PRESSED;
@@ -111,7 +112,7 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
         {
             if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
             {
-                printf("\r\n----ACTION_FIRST_UP->ACTION_IDLE---\r\n");
+                // printf("\r\n----ACTION_FIRST_UP->ACTION_IDLE---\r\n");
                 cur_state = ACTION_IDLE;
                 prev_state = ACTION_IDLE;
             }
@@ -126,7 +127,7 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
                 cur_state = ACTION_END_MIDDLE;
                 tick_prev = tick_cur;
                 prev_state = ACTION_FIRST_UP;
-                printf("\r\n----ACTION_FIRST_UP->ACTION_END_MIDDLE---\r\n");
+                // printf("\r\n----ACTION_FIRST_UP->ACTION_END_MIDDLE---\r\n");
             }
             else if (qvar_value < JUDGE_DOWN_VALUE)
             {
@@ -144,7 +145,7 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
                 tick_prev = tick_cur;
                 cur_state = ACTION_SECOND_DOWN;
                 prev_state = ACTION_FIRST_UP;
-                printf("\r\n----ACTION_FIRST_UP->ACTION_SECOND_DOWN---\r\n");
+                // printf("\r\n----ACTION_FIRST_UP->ACTION_SECOND_DOWN---\r\n");
             }
         }
 
@@ -158,7 +159,7 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
             {
                 RIGHT_PRESSED_flag = 1;
                 RIGHT_PRESSED_TICK = 0;
-                printf("\r\n----RIGHT_PRESSED_TICK>3---\r\n");
+                // printf("\r\n----RIGHT_PRESSED_TICK>3---\r\n");
             }
         }
 
@@ -166,7 +167,7 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
         {
             if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
             {
-                printf("\r\n----RESULT_RIGHT_LONG_PRESSED---\r\n");
+                // printf("\r\n----RESULT_RIGHT_LONG_PRESSED---\r\n");
                 cur_state = ACTION_IDLE;
                 prev_state = ACTION_IDLE;
                 return RESULT_RIGHT_LONG_PRESSED;
@@ -176,7 +177,7 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
         {
             if ((qvar_value < JUDGE_MIDDLE_UP) && (qvar_value > JUDGE_MIDDLE_DOWN))
             {
-                printf("\r\n----ACTION_FIRST_UP->ACTION_IDLE---\r\n");
+                // printf("\r\n----ACTION_FIRST_UP->ACTION_IDLE---\r\n");
                 cur_state = ACTION_IDLE;
                 prev_state = ACTION_IDLE;
             }
@@ -191,7 +192,7 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
                 cur_state = ACTION_END_MIDDLE;
                 tick_prev = tick_cur;
                 prev_state = ACTION_FIRST_DOWN;
-                printf("\r\n----ACTION_FIRST_DOWN->ACTION_END_MIDDLE---\r\n");
+                // printf("\r\n----ACTION_FIRST_DOWN->ACTION_END_MIDDLE---\r\n");
             }
             else if (qvar_value > JUDGE_UP_VALUE)
             {
@@ -209,7 +210,7 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
                 tick_prev = tick_cur;
                 cur_state = ACTION_SECOND_UP;
                 prev_state = ACTION_FIRST_DOWN;
-                printf("\r\n----ACTION_FIRST_DOWN->ACTION_SECOND_UP---\r\n");
+                // printf("\r\n----ACTION_FIRST_DOWN->ACTION_SECOND_UP---\r\n");
             }
         }
 
@@ -223,21 +224,21 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
             {
                 cur_state = ACTION_IDLE;
                 prev_state = ACTION_IDLE;
-                printf("\r\n----ACTION_FIRST_MIDDLE->ACTION_IDLE---\r\n");
+                // printf("\r\n----ACTION_FIRST_MIDDLE->ACTION_IDLE---\r\n");
             }
             else if (qvar_value > JUDGE_UP_VALUE)
             {
                 cur_state = ACTION_SECOND_UP;
                 tick_prev = tick_cur;
                 prev_state = ACTION_FIRST_MIDDLE;
-                printf("\r\n----ACTION_FIRST_MIDDLE->ACTION_SECOND_UP---\r\n");
+                // printf("\r\n----ACTION_FIRST_MIDDLE->ACTION_SECOND_UP---\r\n");
             }
             else if (qvar_value < JUDGE_DOWN_VALUE)
             {
                 cur_state = ACTION_SECOND_DOWN;
                 tick_prev = tick_cur;
                 prev_state = ACTION_FIRST_MIDDLE;
-                printf("\r\n----ACTION_FIRST_MIDDLE->ACTION_SECOND_DOWN---\r\n");
+                // printf("\r\n----ACTION_FIRST_MIDDLE->ACTION_SECOND_DOWN---\r\n");
             }
         }
         else
@@ -246,7 +247,7 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
             {
                 cur_state = ACTION_IDLE;
                 prev_state = ACTION_IDLE;
-                printf("\r\n----ACTION_FIRST_DOWN->ACTION_IDLE---\r\n");
+                // printf("\r\n----ACTION_FIRST_DOWN->ACTION_IDLE---\r\n");
             }
         }
 
@@ -266,14 +267,14 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
                 LEFT_SLIP_TICK = 0;
                 if (ACTION_FIRST_MIDDLE == prev_state)
                 {
-                    //					printf("\r\n----RESULT_LEFT_DOUBLE_CLICK---\r\n");
+                    //					//printf("\r\n----RESULT_LEFT_DOUBLE_CLICK---\r\n");
                     //					cur_state = ACTION_IDLE;
                     //					/*右双击判断成功*/
                     //					return RESULT_LEFT_DOUBLE_CLICK;
                 }
                 else if (ACTION_FIRST_DOWN == prev_state)
                 {
-                    printf("\r\n----RESULT_LEFT_SLIP---\r\n");
+                    // printf("\r\n----RESULT_LEFT_SLIP---\r\n");
                     cur_state = ACTION_IDLE;
                     /*左滑判断成功*/
                     return RESULT_LEFT_SLIP;
@@ -306,14 +307,14 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
                 RIGHT_SLIP_TICK = 0;
                 if (ACTION_FIRST_MIDDLE == prev_state)
                 {
-                    printf("\r\n----RESULT_LEFT_DOUBLE_CLICK---\r\n");
+                    // printf("\r\n----RESULT_LEFT_DOUBLE_CLICK---\r\n");
                     cur_state = ACTION_IDLE;
                     /*右双击判断成功*/
                     return RESULT_RIGHT_DOUBLE_CLICK;
                 }
                 else if (ACTION_FIRST_UP == prev_state)
                 {
-                    printf("\r\n----RESULT_RIGHT_SLIP---\r\n");
+                    // printf("\r\n----RESULT_RIGHT_SLIP---\r\n");
                     cur_state = ACTION_IDLE;
                     /*右滑判断成功*/
                     return RESULT_RIGHT_SLIP;
@@ -337,14 +338,14 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
         {
             if (ACTION_FIRST_UP == prev_state)
             {
-                printf("\r\n----RESULT_LEFT_SINGEL_CLICK---\r\n");
+                // printf("\r\n----RESULT_LEFT_SINGEL_CLICK---\r\n");
                 cur_state = ACTION_IDLE;
                 /*左单击判断成功*/
                 return RESULT_LEFT_SINGEL_CLICK;
             }
             else if (ACTION_FIRST_DOWN == prev_state)
             {
-                printf("\r\n----RESULT_RIGHT_SINGEL_CLICK---\r\n");
+                // printf("\r\n----RESULT_RIGHT_SINGEL_CLICK---\r\n");
                 cur_state = ACTION_IDLE;
                 /*右单击成功*/
                 return RESULT_RIGHT_SINGEL_CLICK;
