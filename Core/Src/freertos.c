@@ -25,7 +25,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "lwip/opt.h"
+#include "lwip/sys.h"
+#include "lwip/api.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,10 +50,10 @@
 
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
-
+osThreadId myTask02Handle;
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-
+void TCPServerTask(void const * argument);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -108,6 +110,8 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+  osThreadDef(myTask02, TCPServerTask, osPriorityNormal, 0, 1024);
+  myTask02Handle = osThreadCreate(osThread(myTask02), NULL);
   /* USER CODE END RTOS_THREADS */
 
 }
@@ -128,12 +132,67 @@ void StartDefaultTask(void const * argument)
   for(;;)
   {
 	  MX_MEMS_Process();
-    osDelay(5);
+	  osDelay(5);
   }
   /* USER CODE END StartDefaultTask */
 }
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+/* USER CODE END Header_TCPServerTask */
+void TCPServerTask(void const * argument)
+{
+  /* USER CODE BEGIN TCPServerTask */
+	osDelay(1000);
 
+  struct netconn *conn, *newconn;
+  err_t err;
+
+  LWIP_UNUSED_ARG(argument);
+
+  /* Create a new connection identifier. */
+  /* Bind connection to well known port number 7. */
+  conn = netconn_new(NETCONN_TCP);
+  netconn_bind(conn, IP_ADDR_ANY, 5101);
+
+  LWIP_ERROR("tcpecho: invalid conn", (conn != NULL), return;);
+
+  /* Tell connection to go into listening mode. */
+  netconn_listen(conn);
+
+  /* Infinite loop */
+  for(;;)
+  {
+
+    /* Grab new connection. */
+//	  osDelay(1000);
+	  printf("TCPServerTask\n");
+    err = netconn_accept(conn, &newconn);
+
+    /*printf("accepted new connection %p\n", newconn);*/
+    /* Process the new connection. */
+    if (err == ERR_OK) {
+      struct netbuf *buf;
+      void *data;
+      uint8_t rcvbuf[64];
+      u16_t len;
+
+      while ((err = netconn_recv(newconn, &buf)) == ERR_OK) {
+        /*printf("Recved\n");*/
+        do {
+             netbuf_data(buf, &data, &len);
+             err = netconn_write(newconn, data, len, NETCONN_COPY);
+        } while (netbuf_next(buf) >= 0);
+        netbuf_delete(buf);
+      }
+      /*printf("Got EOF, looping\n");*/
+      /* Close connection and discard connection identifier. */
+      netconn_close(newconn);
+      netconn_delete(newconn);
+    }
+
+    osDelay(500);
+  } // loop
+  /* USER CODE END TCPServerTask */
+}
 /* USER CODE END Application */

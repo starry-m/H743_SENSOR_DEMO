@@ -399,7 +399,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
   TxConfig.pData = p;
 
   pbuf_ref(p);
-
+  SCB_CleanInvalidateDCache();
   if (HAL_ETH_Transmit_IT(&heth, &TxConfig) == HAL_OK) {
     while(osSemaphoreWait(TxPktSemaphore, TIME_WAITING_FOR_INPUT)!=osOK)
 
@@ -425,7 +425,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 static struct pbuf * low_level_input(struct netif *netif)
 {
   struct pbuf *p = NULL;
-
+  SCB_CleanInvalidateDCache();
   if(RxAllocStatus == RX_ALLOC_OK)
   {
     HAL_ETH_ReadData(&heth, (void **)&p);
