@@ -54,6 +54,124 @@ osThreadId myTask02Handle;
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 void TCPServerTask(void const * argument);
+
+//#include "tcp_server_test.h"
+#include "lwip/opt.h"
+#include <lwip/sockets.h>
+#include "lwip/sys.h"
+#include "lwip/api.h"
+#include "string.h"
+
+#if LWIP_SOCKET	//需要开启Scoket才能使用
+
+#define RECV_DATA         	(1024UL)
+#define LOCAL_PORT 			(6133UL)
+#define BACKLOG 			(5UL)/*最大监听数*/
+
+#define LWIP_TCP_DEBUG_ENABLE    1
+
+#if LWIP_TCP_DEBUG_ENABLE
+   #define LWIP_TCP_DEBUG	printf
+#else
+  #define LWIP_TCP_DEBUG(...)
+#endif
+
+
+static void tcp_server_thread(void *arg)
+{
+  int sockfd = -1,connected; /*socket句柄和建立连接后的句柄*/
+  struct sockaddr_in server_addr,client_addr;
+  socklen_t sin_size;
+  int recv_data_len;
+  uint8_t recv_data[RECV_DATA];
+  osDelay(1000);
+  LWIP_TCP_DEBUG("tcp server port %d\n\n",LOCAL_PORT);
+
+again:
+
+  //创建scoket描述符 AF_INET 使用ipv4地址
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  if (sockfd < 0)
+  {
+      LWIP_TCP_DEBUG("Socket error\n");
+	  close(sockfd);
+	  vTaskDelay(100);
+      goto again;
+  }
+  //
+  server_addr.sin_family = AF_INET; 				//该属性表示接收本机或其他机器传输
+  server_addr.sin_addr.s_addr = htonl(INADDR_ANY);	//本机IP
+  server_addr.sin_port = htons(LOCAL_PORT);			//端口号
+  memset(&(server_addr.sin_zero), 0, sizeof(server_addr.sin_zero));
+
+  if (bind(sockfd, (struct sockaddr *)&server_addr, sizeof(struct sockaddr)) == -1)
+  {
+      LWIP_TCP_DEBUG("Unable to bind\n");
+	  close(sockfd);
+	  vTaskDelay(100);
+      goto again;
+  }
+
+  //设置最大监听数
+  if (listen(sockfd, BACKLOG) == -1)
+  {
+      LWIP_TCP_DEBUG("Listen error\n");
+	  close(sockfd);
+	  vTaskDelay(100);
+      goto again;
+  }
+
+  while(1)
+  {
+    sin_size = sizeof(struct sockaddr_in);
+
+	//在这里阻塞知道接收到消息，参数分别是socket句柄，接收到的地址信息以及大小
+    connected = accept(sockfd, (struct sockaddr *)&client_addr, &sin_size);
+
+    LWIP_TCP_DEBUG("new client connected from (%s, %d)\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+
+    int tcp_nodelay = 1;//don't delay send to coalesce packets
+    setsockopt(connected,IPPROTO_TCP,TCP_NODELAY,(void *) &tcp_nodelay,sizeof(int));
+
+    while(1)
+    {
+      recv_data_len = recv(connected, recv_data, RECV_DATA, 0);
+
+      if (recv_data_len <= 0)
+	  {
+		   break;
+	  }
+
+
+      LWIP_TCP_DEBUG("recv %d len data\n",recv_data_len);
+	  //发送内容
+      write(connected,recv_data,recv_data_len);
+    }
+
+    if (connected >= 0)
+	{
+		 close(connected);
+	}
+
+    connected = -1;
+  }
+
+  if (sockfd >= 0)
+  {
+	 close(sockfd);
+  }
+
+}
+#endif
+
+void tcp_server_init(void)
+{
+#if LWIP_SOCKET
+  sys_thread_new("tcpecho_thread", tcp_server_thread, NULL, 512, 4);
+#endif
+}
+
+
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -110,8 +228,10 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  osThreadDef(myTask02, TCPServerTask, osPriorityNormal, 0, 1024);
-  myTask02Handle = osThreadCreate(osThread(myTask02), NULL);
+//  osThreadDef(myTask02, TCPServerTask, osPriorityNormal, 0, 1024);
+//  myTask02Handle = osThreadCreate(osThread(myTask02), NULL);
+
+
   /* USER CODE END RTOS_THREADS */
 
 }
@@ -127,6 +247,7 @@ void StartDefaultTask(void const * argument)
 {
   /* init code for LWIP */
   MX_LWIP_Init();
+  tcp_server_init();
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   for(;;)
