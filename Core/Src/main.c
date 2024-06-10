@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "lwip.h"
 #include "usart.h"
 #include "usb_otg.h"
@@ -54,6 +55,7 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MPU_Config(void);
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -77,7 +79,7 @@ PUTCHAR_PROTOTYPE
 ///重定向c库函数printf到串口DEBUG_USART，重定向后可使用printf函数
 int fputc(int ch, FILE *f)
 {
-	/* 发鿁�?个字节数据到串口DEBUG_USART */
+	/* 发鿁�??个字节数据到串口DEBUG_USART */
 	HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 1000);	
 	
 	return (ch);
@@ -111,7 +113,7 @@ PUTCHAR_PROTOTYPE
 ///重定向c库函数printf到串口DEBUG_USART，重定向后可使用printf函数
 int fputc(int ch, FILE *f)
 {
-	/* 发鿁�?个字节数据到串口DEBUG_USART */
+	/* 发鿁�??个字节数据到串口DEBUG_USART */
 	HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 1000);	
 	
 	return (ch);
@@ -151,7 +153,6 @@ int fputc(int ch, FILE *f)
   MX_GPIO_Init();
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
-  MX_LWIP_Init();
   /* USER CODE BEGIN 2 */
   printf("are you ok?\n");
 
@@ -159,6 +160,14 @@ int fputc(int ch, FILE *f)
   MX_MEMS_Init();
 	
   /* USER CODE END 2 */
+
+  /* Call init function for freertos objects (in cmsis_os2.c) */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -171,7 +180,7 @@ int fputc(int ch, FILE *f)
 //	  HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
 	  HAL_Delay(5);
 //				printf("hello world\n");
-		MX_LWIP_Process();
+//		MX_LWIP_Process();
 //		HAL_Delay(500);
 
   }
