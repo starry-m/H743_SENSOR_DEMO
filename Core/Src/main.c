@@ -18,7 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "eth.h"
+#include "lwip.h"
 #include "usart.h"
 #include "usb_otg.h"
 #include "gpio.h"
@@ -53,6 +53,7 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MPU_Config(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -72,6 +73,16 @@ PUTCHAR_PROTOTYPE
   HAL_UART_Transmit(&huart3, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
   return ch;
 }
+#else
+///重定向c库函数printf到串口DEBUG_USART，重定向后可使用printf函数
+int fputc(int ch, FILE *f)
+{
+	/* 发鿁�?个字节数据到串口DEBUG_USART */
+	HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 1000);	
+	
+	return (ch);
+}
+
 #endif
 /* USER CODE END 1 */
 /* USER CODE END 0 */
@@ -84,8 +95,41 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+#include "stdio.h"
 
+#ifdef __GNUC__
+
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+
+PUTCHAR_PROTOTYPE
+{
+
+  HAL_UART_Transmit(&huart3, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
+  return ch;
+}
+#else
+///重定向c库函数printf到串口DEBUG_USART，重定向后可使用printf函数
+int fputc(int ch, FILE *f)
+{
+	/* 发鿁�?个字节数据到串口DEBUG_USART */
+	HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 1000);	
+	
+	return (ch);
+}
+
+#endif
   /* USER CODE END 1 */
+
+  /* MPU Configuration--------------------------------------------------------*/
+  MPU_Config();
+
+  /* Enable the CPU Cache */
+
+  /* Enable I-Cache---------------------------------------------------------*/
+  SCB_EnableICache();
+
+  /* Enable D-Cache---------------------------------------------------------*/
+  SCB_EnableDCache();
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -105,14 +149,16 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-//  MX_ETH_Init();
   MX_USART3_UART_Init();
-//  MX_USB_OTG_FS_PCD_Init();
+  MX_USB_OTG_FS_PCD_Init();
+  MX_LWIP_Init();
   /* USER CODE BEGIN 2 */
   printf("are you ok?\n");
 
   HAL_UART_Transmit(&huart3, "hello\n", 6, 10000);
-  MX_MEMS_Init();
+//  MX_MEMS_Init();
+	
+//	MX_LWIP_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -122,9 +168,12 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  MX_MEMS_Process();
-//	  HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
+//	  MX_MEMS_Process();
+	  HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
 //	  HAL_Delay(300);
+				printf("hello world\n");
+		MX_LWIP_Process();
+		HAL_Delay(500);
 
   }
   /* USER CODE END 3 */
@@ -197,6 +246,45 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+ /* MPU Configuration */
+
+void MPU_Config(void)
+{
+  MPU_Region_InitTypeDef MPU_InitStruct = {0};
+
+  /* Disables the MPU */
+  HAL_MPU_Disable();
+
+  /** Initializes and configures the Region and the memory to be protected
+  */
+  MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+  MPU_InitStruct.Number = MPU_REGION_NUMBER0;
+  MPU_InitStruct.BaseAddress = 0x30040000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_256B;
+  MPU_InitStruct.SubRegionDisable = 0x0;
+  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
+  MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
+  MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region and the memory to be protected
+  */
+  MPU_InitStruct.Number = MPU_REGION_NUMBER1;
+  MPU_InitStruct.BaseAddress = 0x30044000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_16KB;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
+  MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+  /* Enables the MPU */
+  HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
+
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

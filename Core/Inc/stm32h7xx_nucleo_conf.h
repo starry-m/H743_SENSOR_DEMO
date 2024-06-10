@@ -60,9 +60,9 @@
 /* UART1 Baud rate in bps  */
 #define BUS_UART1_BAUDRATE                  9600U /* baud rate of UARTn = 9600 baud */
 
-#define USE_NUCLEO_144
-#define USE_NUCLEO_H743ZI
 
+#define USE_NUCLEO_144
+#define USE_NUCLEO_H743ZI2
 /**
   * @}
   */
