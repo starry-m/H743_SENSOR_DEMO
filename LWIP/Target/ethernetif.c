@@ -212,6 +212,12 @@ static void low_level_init(struct netif *netif)
   MACAddr[3] = 0x00;
   MACAddr[4] = 0x00;
   MACAddr[5] = 0x00;
+
+  uint32_t sn0 = HAL_GetUIDw0();//STM32 cpu id
+  MACAddr[3] = (sn0 >> 16) & 0xFF;
+  MACAddr[4] = (sn0 >> 8) & 0xFFF;
+  MACAddr[5] = sn0 & 0xFF;
+
   heth.Init.MACAddr = &MACAddr[0];
   heth.Init.MediaInterface = HAL_ETH_RMII_MODE;
   heth.Init.TxDesc = DMATxDscrTab;
