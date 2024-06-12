@@ -7,6 +7,8 @@
         "iks4a1_env_sensors.h": "c",
         "lsm6dsv16x.h": "c",
         "app_mems.h": "c",
-        "stm32h7xx_nucleo.h": "c"
+        "stm32h7xx_nucleo.h": "c",
+        "stm32h7xx.h": "c",
+        "stm32h743xx.h": "c"
     }
 }
