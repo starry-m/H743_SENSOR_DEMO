@@ -30,6 +30,12 @@
 
 /* Within 'USER CODE' section, code will be kept by default at each generation */
 /* USER CODE BEGIN 0 */
+#define LWIP_DEBUG
+//#include "bsp_printlog.h"
+#undef LWIP_PLATFORM_DIAG
+#define LWIP_PLATFORM_DIAG(x) do {printf x;} while(0)
+//打开 MQTT DEBUG 模式以便更好观察
+#define MQTT_DEBUG LWIP_DBG_ON
 
 /* USER CODE END 0 */
 
