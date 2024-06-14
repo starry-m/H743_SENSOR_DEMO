@@ -15,5 +15,6 @@
 
 uint8_t QVAR_action_check_statemachine(const int16_t qvar_value);
 void BSP_SENSOR_QVAR_GetValue(int16_t *Axes);
+void read_all_sensor_data();
 
 #endif /* INC_MEMS_CONTROL_H_ */

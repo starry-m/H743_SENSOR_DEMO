@@ -33,6 +33,8 @@
 #include "string.h"
 #include "app_mqtt.h"
 
+#include "mems_control.h"
+#include "app_mems.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -173,7 +175,7 @@ void tcp_server_init(void)
 #endif
 }
 
-uint8_t data_send_buff[100];
+
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -250,28 +252,24 @@ void StartDefaultTask(void const * argument)
   /* init code for LWIP */
   MX_LWIP_Init();
 //  tcp_server_init();
-  extern uint8_t sensor_data_pack(uint8_t cmd, uint8_t *sendbuff, int32_t *data1_in, int32_t *data2_in, int32_t *data3_in,
-          int32_t *data4_in, int32_t *data5_in, int32_t *data6_in, float fdata1_in, float fdata2_in,
-          float fdata3_in, float fdata4_in, float fdata5_in);
-//  printf("\r\n--start test---\r\n");
-//  int32_t test_buff[3]={11,-12,13};
-//  int32_t test_buff2[3]={121,-12,193};
-//  int32_t test_buff3[3]={131,-12,183};
-//  int32_t test_buff4[3]={141,-12,173};
-//  int32_t test_buff5[3]={151,-12,163};
-//  int32_t test_buff6[3]={161,-12,153};
-//  uint8_t send_length=sensor_data_pack(0,data_send_buff,test_buff,test_buff2,test_buff3,test_buff4,test_buff5,test_buff6,1.0f,2.0f,3.0f,4.0f,5.0f);
+  MX_MEMS_Init();
 
-//  printf("send_length=%d\r\n",send_length);
-//  HAL_UART_Transmit(&huart3, data_send_buff, send_length, 10000);
   osDelay(2000);
   bsp_mqtt_init();
+  uint16_t send_tick=0;
 //  mqtt_client_connect();
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   for(;;)
   {
-//	  MX_MEMS_Process();
+	  send_tick++;
+	  if(send_tick>=200)
+	  {
+		  send_tick=0;
+		  read_all_sensor_data();
+	  }
+
+	  MX_MEMS_Process();
 	  osDelay(5);
   }
   /* USER CODE END StartDefaultTask */

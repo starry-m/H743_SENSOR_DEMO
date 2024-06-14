@@ -11,6 +11,10 @@
 #include "lsm6dsv16x_reg.h"
 
 #include "main.h"
+#include "usart.h"
+#include "string.h"
+#include "data_pack.h"
+
 
 extern void *MotionCompObj[IKS4A1_MOTION_INSTANCES_NBR];
 
@@ -363,3 +367,91 @@ uint8_t QVAR_action_check_statemachine(const int16_t qvar_value)
 
     return 0;
 }
+
+static void IKS4A1_MOTION_SENSOR_Axes_2_int32(int32_t *buff,IKS4A1_MOTION_SENSOR_Axes_t data)
+{
+	buff[0]=data.x;
+	buff[1]=data.y;
+	buff[2]=data.z;
+}
+static IKS4A1_MOTION_SENSOR_Axes_t LIS2MDL_magnetic_field;
+static IKS4A1_MOTION_SENSOR_Axes_t LSM6DSV16X_acceleration,LSM6DSV16X_angular_velocity;
+static IKS4A1_MOTION_SENSOR_Axes_t LIS2DUXS12_acceleration;
+static IKS4A1_MOTION_SENSOR_Axes_t LSM6DSO16IS_acceleration,LSM6DSO16IS_angular_velocity;
+
+static int32_t LIS2MDL_mag[3],LSM6DSV16X_acc[3],LSM6DSV16X_ang[3],LIS2DUXS12_acc[3],LSM6DSO16IS_acc[3],LSM6DSO16IS_ang[3];
+
+
+static float STTS22H_temperature;
+static float LPS22DF_temperature ,LPS22DF_pressure;
+static float SHT40AD1B_temperature,SHT40AD1B_humidity;
+
+static uint8_t data_send_buff[100];
+static uint8_t send_length;
+void read_all_sensor_data()
+{
+
+	if (IKS4A1_MOTION_SENSOR_GetAxes(0, MOTION_MAGNETO, &LIS2MDL_magnetic_field))
+	{
+
+	}
+	if (IKS4A1_MOTION_SENSOR_GetAxes(1, MOTION_ACCELERO, &LSM6DSV16X_acceleration))
+	{
+
+	}
+	if (IKS4A1_MOTION_SENSOR_GetAxes(1, MOTION_GYRO, &LSM6DSV16X_angular_velocity))
+	{
+
+	}
+	if (IKS4A1_MOTION_SENSOR_GetAxes(2, MOTION_ACCELERO, &LIS2DUXS12_acceleration))
+	{
+
+	}
+	if (IKS4A1_MOTION_SENSOR_GetAxes(3, MOTION_ACCELERO, &LSM6DSO16IS_acceleration))
+	{
+
+	}
+	if (IKS4A1_MOTION_SENSOR_GetAxes(3, MOTION_GYRO, &LSM6DSO16IS_angular_velocity))
+	{
+
+	}
+
+	if (IKS4A1_ENV_SENSOR_GetValue(0, ENV_TEMPERATURE, &STTS22H_temperature))
+	{
+
+	}
+	if (IKS4A1_ENV_SENSOR_GetValue(1, ENV_TEMPERATURE, &LPS22DF_temperature))
+	{
+
+	}
+	if (IKS4A1_ENV_SENSOR_GetValue(1, ENV_PRESSURE, &LPS22DF_pressure))
+	{
+
+	}
+
+	if (IKS4A1_ENV_SENSOR_GetValue(2, ENV_TEMPERATURE, &SHT40AD1B_temperature))
+	{
+
+	}
+	if (IKS4A1_ENV_SENSOR_GetValue(2, ENV_HUMIDITY, &SHT40AD1B_humidity))
+	{
+
+	}
+	IKS4A1_MOTION_SENSOR_Axes_2_int32(LIS2MDL_mag,LIS2MDL_magnetic_field);
+	IKS4A1_MOTION_SENSOR_Axes_2_int32(LSM6DSV16X_acc,LSM6DSV16X_acceleration);
+	IKS4A1_MOTION_SENSOR_Axes_2_int32(LSM6DSV16X_ang,LSM6DSV16X_angular_velocity);
+	IKS4A1_MOTION_SENSOR_Axes_2_int32(LIS2DUXS12_acc,LIS2DUXS12_acceleration);
+	IKS4A1_MOTION_SENSOR_Axes_2_int32(LSM6DSO16IS_acc,LSM6DSO16IS_acceleration);
+	IKS4A1_MOTION_SENSOR_Axes_2_int32(LSM6DSO16IS_ang,LSM6DSO16IS_angular_velocity);
+
+	send_length=sensor_data_pack(0,data_send_buff,LIS2MDL_mag,\
+			LSM6DSV16X_acc,LSM6DSV16X_ang,\
+			LIS2DUXS12_acc,\
+			LSM6DSO16IS_acc,LSM6DSO16IS_ang,\
+			STTS22H_temperature,LPS22DF_temperature,LPS22DF_pressure,SHT40AD1B_temperature,SHT40AD1B_humidity);
+	HAL_UART_Transmit(&huart3, data_send_buff, send_length, 10000);
+
+
+}
+
+
