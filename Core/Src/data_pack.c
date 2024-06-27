@@ -61,7 +61,7 @@ static uint8_t data_pack_init(uint8_t cmd_s)
     return 0;
 }
 
-static void u32_transfer_u8(int32_t d_in, uint8_t *buff)
+void u32_transfer_u8(int32_t d_in, uint8_t *buff)
 {
     buff[0] = 0xff & (d_in >> 24);
     buff[1] = 0xff & (d_in >> 16);
@@ -111,13 +111,7 @@ static void motion_data_buff_fit(int32_t *data1_in, int32_t *data2_in, int32_t *
     }
 }
 
-/*要点提示 : 1. float和unsigned long具有相同的数据结构长度 2. union据类型里的数据存放在相同的物理空间
 
-*/
-typedef union {
-    float fdata;
-    uint8_t ldata[4];
-} UserFtoCtoI;
 static void env_data_buff_fit(float data1_in, float data2_in, float data3_in, float data4_in, float data5_in)
 {
     uint16_t index = 0, index2 = 72;
