@@ -239,7 +239,9 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_THREADS */
 
 }
-
+static uint8_t sensor_send_buff[100];
+static uint8_t sensor_send_length;
+static sensor_channel_status c_status;
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
   * @brief  Function implementing the defaultTask thread.
@@ -253,6 +255,9 @@ void StartDefaultTask(void const * argument)
   MX_LWIP_Init();
 //  tcp_server_init();
   MX_MEMS_Init();
+  static Sensor_Type cur_sensor=LIS2MDL;
+  __IO static int16_t QvarValue;
+  static uint8_t state_back = 0;
 
   osDelay(2000);
   bsp_mqtt_init();
@@ -266,11 +271,49 @@ void StartDefaultTask(void const * argument)
 	  if(send_tick>=200)
 	  {
 		  send_tick=0;
-		  read_all_sensor_data();
+//		  read_all_sensor_data();
+		  sensor_send_length=get_one_sensor_data(cur_sensor,sensor_send_buff,c_status);
 	  }
 
-	  MX_MEMS_Process();
+//	  MX_MEMS_Process();
 	  osDelay(5);
+	  BSP_SENSOR_QVAR_GetValue(&QvarValue);
+	  state_back = QVAR_action_check_statemachine((int)QvarValue / 78);
+	  if(0 ==state_back)
+		  continue;
+	  switch (state_back) {
+		case RESULT_LEFT_SINGEL_CLICK:
+			//切换传感器的通道
+			break;
+		case RESULT_RIGHT_SINGEL_CLICK:
+			//打开或关闭传感器的通道
+			break;
+		case RESULT_LEFT_SLIP:
+			//切换传感器
+			if(cur_sensor<SHT40AD1B)
+				cur_sensor++;
+			else
+				cur_sensor=LIS2MDL;
+			break;
+		case RESULT_RIGHT_SLIP:
+			//切换传感器
+			if(cur_sensor>LIS2MDL)
+				cur_sensor--;
+			else
+				cur_sensor=SHT40AD1B;
+
+			break;
+		case RESULT_LEFT_LONG_PRESSED:
+
+			break;
+		case RESULT_RIGHT_LONG_PRESSED:
+
+			break;
+		default:
+			break;
+	}
+
+
   }
   /* USER CODE END StartDefaultTask */
 }
