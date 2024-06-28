@@ -242,6 +242,8 @@ void MX_FREERTOS_Init(void) {
 static uint8_t sensor_send_buff[100];
 static uint8_t sensor_send_length;
 static sensor_channel_status c_status;
+static uint8_t sensor_channel_enable[7][6];
+static uint8_t sensor_channel_nums[7]={3,6,3,6,1,2,2}
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
   * @brief  Function implementing the defaultTask thread.
@@ -256,9 +258,10 @@ void StartDefaultTask(void const * argument)
 //  tcp_server_init();
   MX_MEMS_Init();
   static Sensor_Type cur_sensor=LIS2MDL;
+  static uint8_t channel_index=0;
   __IO static int16_t QvarValue;
   static uint8_t state_back = 0;
-
+  uint8_t i=0;
   osDelay(2000);
   bsp_mqtt_init();
   uint16_t send_tick=0;
@@ -272,7 +275,7 @@ void StartDefaultTask(void const * argument)
 	  {
 		  send_tick=0;
 //		  read_all_sensor_data();
-		  sensor_send_length=get_one_sensor_data(cur_sensor,sensor_send_buff,c_status);
+		  // sensor_send_length=get_one_sensor_data(cur_sensor,sensor_send_buff,c_status);
 	  }
 
 //	  MX_MEMS_Process();
@@ -281,12 +284,18 @@ void StartDefaultTask(void const * argument)
 	  state_back = QVAR_action_check_statemachine((int)QvarValue / 78);
 	  if(0 ==state_back)
 		  continue;
+      
 	  switch (state_back) {
 		case RESULT_LEFT_SINGEL_CLICK:
 			//切换传感器的通道
+    if(channel_index<sensor_channel_nums[cur_sensor]-1)
+       channel_index++;
+    else
+      channel_index=0;
 			break;
 		case RESULT_RIGHT_SINGEL_CLICK:
 			//打开或关闭传感器的通道
+      sensor_channel_enable[cur_sensor][channel_index]=!sensor_channel_enable[cur_sensor][channel_index];
 			break;
 		case RESULT_LEFT_SLIP:
 			//切换传感器
@@ -294,6 +303,8 @@ void StartDefaultTask(void const * argument)
 				cur_sensor++;
 			else
 				cur_sensor=LIS2MDL;
+      
+      channel_index=0;
 			break;
 		case RESULT_RIGHT_SLIP:
 			//切换传感器
@@ -301,7 +312,7 @@ void StartDefaultTask(void const * argument)
 				cur_sensor--;
 			else
 				cur_sensor=SHT40AD1B;
-
+      channel_index=0;
 			break;
 		case RESULT_LEFT_LONG_PRESSED:
 
@@ -312,7 +323,15 @@ void StartDefaultTask(void const * argument)
 		default:
 			break;
 	}
-
+  printf("[QVAR state: %d]\r\n",state_back);
+  printf("[cur_sensor : %d] [channel status:]\r\n",cur_sensor);
+  printf("\r\n[ ");
+  for ( i = 0; i < sensor_channel_nums[cur_sensor]; i++)
+  {
+    printf("%d ",sensor_channel_enable[cur_sensor][i]);
+  }
+  printf(" ]\r\n");
+  
 
   }
   /* USER CODE END StartDefaultTask */

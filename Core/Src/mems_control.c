@@ -459,7 +459,6 @@ uint8_t  get_one_sensor_data(Sensor_Type type,uint8_t *data,sensor_channel_statu
 			{
 			}
 			IKS4A1_MOTION_SENSOR_Axes_2_int32(LIS2MDL_mag,LIS2MDL_magnetic_field);
-			if(ch_status.LIS2MDL_MAG_X)
 			for(i=0;i<3;i++)
 			{
 				u32_transfer_u8(LIS2MDL_mag[i],data+i*4);
@@ -590,4 +589,10 @@ uint8_t  get_one_sensor_data(Sensor_Type type,uint8_t *data,sensor_channel_statu
 	return length;
 }
 
+
+
+/*
+通过传入的指令进行控制操作
+
+*/
 
