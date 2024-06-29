@@ -243,7 +243,7 @@ static uint8_t sensor_send_buff[100];
 static uint8_t sensor_send_length;
 static sensor_channel_status c_status;
 static uint8_t sensor_channel_enable[7][6];
-static uint8_t sensor_channel_nums[7]={3,6,3,6,1,2,2}
+static uint8_t sensor_channel_nums[7]={3,6,3,6,1,2,2};
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
   * @brief  Function implementing the defaultTask thread.
@@ -274,6 +274,7 @@ void StartDefaultTask(void const * argument)
 	  if(send_tick>=200)
 	  {
 		  send_tick=0;
+		  sensor_send_length=instruct_sensor_Handler(cur_sensor,&sensor_channel_enable[cur_sensor],sensor_channel_nums[cur_sensor],sensor_send_buff);
 //		  read_all_sensor_data();
 		  // sensor_send_length=get_one_sensor_data(cur_sensor,sensor_send_buff,c_status);
 	  }
@@ -324,7 +325,7 @@ void StartDefaultTask(void const * argument)
 			break;
 	}
   printf("[QVAR state: %d]\r\n",state_back);
-  printf("[cur_sensor : %d] [channel status:]\r\n",cur_sensor);
+  printf("[cur_sensor : %d] [channel status:]",cur_sensor);
   printf("\r\n[ ");
   for ( i = 0; i < sensor_channel_nums[cur_sensor]; i++)
   {
