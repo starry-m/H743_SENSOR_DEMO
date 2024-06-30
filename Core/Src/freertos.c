@@ -61,7 +61,7 @@ osThreadId myTask02Handle;
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 void TCPServerTask(void const * argument);
-
+void SensorSampleTask(void const * argument);
 //#include "tcp_server_test.h"
 
 
@@ -227,13 +227,13 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 1024);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 512);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-//  osThreadDef(myTask02, TCPServerTask, osPriorityNormal, 0, 1024);
-//  myTask02Handle = osThreadCreate(osThread(myTask02), NULL);
+  osThreadDef(myTask02, SensorSampleTask, osPriorityBelowNormal, 0, 512);
+  myTask02Handle = osThreadCreate(osThread(myTask02), NULL);
 
 
   /* USER CODE END RTOS_THREADS */
@@ -244,6 +244,7 @@ static uint8_t sensor_send_length;
 static sensor_channel_status c_status;
 static uint8_t sensor_channel_enable[7][6];
 static uint8_t sensor_channel_nums[7]={3,6,3,6,1,2,2};
+static Sensor_Type cur_sensor=LIS2MDL;
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
   * @brief  Function implementing the defaultTask thread.
@@ -256,28 +257,29 @@ void StartDefaultTask(void const * argument)
   /* init code for LWIP */
   MX_LWIP_Init();
 //  tcp_server_init();
-  MX_MEMS_Init();
-  static Sensor_Type cur_sensor=LIS2MDL;
+//  MX_MEMS_Init();
+
   static uint8_t channel_index=0;
   __IO static int16_t QvarValue;
   static uint8_t state_back = 0;
   uint8_t i=0;
-  osDelay(2000);
-  bsp_mqtt_init();
+//  osDelay(2000);
+//  bsp_mqtt_init();
   uint16_t send_tick=0;
 //  mqtt_client_connect();
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   for(;;)
   {
-	  send_tick++;
-	  if(send_tick>=200)
-	  {
-		  send_tick=0;
-		  sensor_send_length=instruct_sensor_Handler(cur_sensor,&sensor_channel_enable[cur_sensor],sensor_channel_nums[cur_sensor],sensor_send_buff);
+//	  send_tick++;
+//	  if(send_tick>=200)
+//	  {
+//		  send_tick=0;
+//		  sensor_send_length=instruct_sensor_Handler(cur_sensor,&sensor_channel_enable[cur_sensor],sensor_channel_nums[cur_sensor],sensor_send_buff);
+//		  printf("sensor_send_length=%d\n",sensor_send_length);
 //		  read_all_sensor_data();
 		  // sensor_send_length=get_one_sensor_data(cur_sensor,sensor_send_buff,c_status);
-	  }
+//	  }
 
 //	  MX_MEMS_Process();
 	  osDelay(5);
@@ -324,7 +326,7 @@ void StartDefaultTask(void const * argument)
 		default:
 			break;
 	}
-  printf("[QVAR state: %d]\r\n",state_back);
+  printf("[QVAR state-> %d]\r\n",state_back);
   printf("[cur_sensor : %d] [channel status:]",cur_sensor);
   printf("\r\n[ ");
   for ( i = 0; i < sensor_channel_nums[cur_sensor]; i++)
@@ -340,6 +342,19 @@ void StartDefaultTask(void const * argument)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+void SensorSampleTask(void const * argument)
+{
+  for(;;)
+  {
+    osDelay(1000);
+    sensor_send_length=instruct_sensor_Handler(cur_sensor,&sensor_channel_enable[cur_sensor],sensor_channel_nums[cur_sensor],sensor_send_buff);
+    printf("sensor_send_length=%d\n",sensor_send_length);
+  }
+
+}
+
+
+
 /* USER CODE END Header_TCPServerTask */
 void TCPServerTask(void const * argument)
 {

@@ -157,7 +157,7 @@ int fputc(int ch, FILE *f)
 //  printf("are you ok?\n");
 
 //  HAL_UART_Transmit(&huart3, "hello\n", 6, 10000);
-//  MX_MEMS_Init();
+  MX_MEMS_Init();
 	
   /* USER CODE END 2 */
 
