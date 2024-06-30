@@ -9,6 +9,8 @@
         "app_mems.h": "c",
         "stm32h7xx_nucleo.h": "c",
         "stm32h7xx.h": "c",
-        "stm32h743xx.h": "c"
+        "stm32h743xx.h": "c",
+        "freertos.h": "c",
+        "task.h": "c"
     }
 }
