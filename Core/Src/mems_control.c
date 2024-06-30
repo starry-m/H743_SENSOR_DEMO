@@ -611,7 +611,8 @@ uint16_t i=0;
 			{
                 if(_sensor_channel_enable[i])
                 {
-                    u32_transfer_u8(LIS2MDL_mag[i],data+i*4);
+//                    u32_transfer_u8(LIS2MDL_mag[i],data+i*4);
+                    printf("LIS2MDL:%d:%d:\r\n",i,LIS2MDL_mag[i]);
                     length +=4;
                 }
 
@@ -635,9 +636,17 @@ uint16_t i=0;
                 if(_sensor_channel_enable[i])
                 {
                     if(i<3)
-				        u32_transfer_u8(LSM6DSV16X_acc[i],data+i*4);
+                    {
+//                    	u32_transfer_u8(LSM6DSV16X_acc[i],data+i*4);
+                    	printf("LSM6DSV16X:%d:%d:\r\n",i,LSM6DSV16X_acc[i]);
+                    }
+
                     else
-                        u32_transfer_u8(LSM6DSV16X_ang[i],data+i*4);
+                    {
+//                    	 u32_transfer_u8(LSM6DSV16X_ang[i],data+i*4);
+                    	printf("LSM6DSV16X:%d:%d:\r\n",i,LSM6DSV16X_ang[i]);
+                    }
+
                     length +=4;
                 }
 			}
@@ -653,7 +662,8 @@ uint16_t i=0;
 			{
                 if(_sensor_channel_enable[i])
                 {
-                    u32_transfer_u8(LIS2DUXS12_acc[i],data+i*4);
+//                    u32_transfer_u8(LIS2DUXS12_acc[i],data+i*4);
+                    printf("LIS2DUXS12:%d:%d:\r\n",i,LIS2DUXS12_acc[i]);
                     length +=4;
                 }
 
@@ -676,11 +686,19 @@ uint16_t i=0;
 
                 if(_sensor_channel_enable[i])
                 {
-                    if(i<3)
-				        u32_transfer_u8(LSM6DSO16IS_acc[i],data+i*4);
-                    else
-                        u32_transfer_u8(LSM6DSO16IS_ang[i],data+i*4);
-                    length +=4;
+                	  if(i<3)
+						{
+	//                    	u32_transfer_u8(LSM6DSV16X_acc[i],data+i*4);
+							printf("LSM6DSO16IS:%d:%d:\r\n",i,LSM6DSO16IS_acc[i]);
+						}
+
+						else
+						{
+	//                    	 u32_transfer_u8(LSM6DSV16X_ang[i],data+i*4);
+							printf("LSM6DSO16IS:%d:%d:\r\n",i,LSM6DSO16IS_ang[i]);
+						}
+
+						length +=4;
                 }
 			}
 			break;
@@ -689,13 +707,15 @@ uint16_t i=0;
 			{
 
 			}
-			temp_fdata.fdata=STTS22H_temperature;
+
             if(0==_sensor_channel_enable[0])
                 break;
-		    for (i = 0; i < 4; i++)
-		    {
-		    	data[i] = temp_fdata.ldata[i];
-		    }
+            printf("STTS22H:%.2f:\r\n",STTS22H_temperature);
+//			temp_fdata.fdata=STTS22H_temperature;
+//		    for (i = 0; i < 4; i++)
+//		    {
+//		    	data[i] = temp_fdata.ldata[i];
+//		    }
 		    length +=4;
 			break;
 		case LPS22DF:
@@ -707,23 +727,25 @@ uint16_t i=0;
 			{
 
 			}
-			temp_fdata.fdata=LPS22DF_temperature;
+//			temp_fdata.fdata=LPS22DF_temperature;
              if(_sensor_channel_enable[0])
              {
-                for (i = 0; i < 4; i++)
-                {
-                    data[i] = temp_fdata.ldata[i];
-                }
+            	 printf("STTS22H:%d:%.2f:\r\n",0,LPS22DF_temperature);
+//                for (i = 0; i < 4; i++)
+//                {
+//                    data[i] = temp_fdata.ldata[i];
+//                }
                 length +=4;
              }
 		    
-			temp_fdata.fdata=LPS22DF_pressure;
+//			temp_fdata.fdata=LPS22DF_pressure;
             if(0==_sensor_channel_enable[1])
                 break;
-		    for (i = 0; i < 4; i++)
-		    {
-		    	data[4+i] = temp_fdata.ldata[i];
-		    }
+            printf("STTS22H:%d:%.2f:\r\n",1,LPS22DF_pressure);
+//		    for (i = 0; i < 4; i++)
+//		    {
+//		    	data[4+i] = temp_fdata.ldata[i];
+//		    }
 		    length +=4;
 		break;
 		case SHT40AD1B:
@@ -735,22 +757,25 @@ uint16_t i=0;
 			{
 
 			}
-			temp_fdata.fdata=SHT40AD1B_temperature;
+
+//			temp_fdata.fdata=SHT40AD1B_temperature;
             if(_sensor_channel_enable[0])
              {
-                for (i = 0; i < 4; i++)
-                {
-                    data[i] = temp_fdata.ldata[i];
-                }
+            	printf("SHT40AD1B:%d:%.2f:\r\n",0,SHT40AD1B_temperature);
+//                for (i = 0; i < 4; i++)
+//                {
+//                    data[i] = temp_fdata.ldata[i];
+//                }
                 length +=4;
              }
-			temp_fdata.fdata=SHT40AD1B_humidity;
+//			temp_fdata.fdata=SHT40AD1B_humidity;
             if(0==_sensor_channel_enable[1])
                 break;
-		    for (i = 0; i < 4; i++)
-		    {
-		    	data[4+i] = temp_fdata.ldata[i];
-		    }
+            printf("SHT40AD1B:%d:%.2f:\r\n",1,SHT40AD1B_humidity);
+//		    for (i = 0; i < 4; i++)
+//		    {
+//		    	data[4+i] = temp_fdata.ldata[i];
+//		    }
 		    length +=4;
 			break;
 		default:
