@@ -35,6 +35,9 @@
 
 #include "mems_control.h"
 #include "app_mems.h"
+
+#include "chry_ringbuffer.h"
+#include "string.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,6 +52,26 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+chry_ringbuffer_t rb;
+uint8_t mempool[1024];
+/* Buffer used for reception */
+uint8_t aRxBuffer[10];
+/**
+  * @brief  Rx Transfer completed callback
+  * @param  UartHandle: UART handle
+  * @note   This example shows a simple way to report end of DMA Rx transfer, and
+  *         you can add your own implementation.
+  * @retval None
+  */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+{
+	if(UartHandle->Instance==USART3)
+	{
+		chry_ringbuffer_write(&rb, aRxBuffer, 1);
+		HAL_UART_Receive_IT(&huart3, (uint8_t *)aRxBuffer, 1);
+	}
+
+}
 
 /* USER CODE END PM */
 
@@ -174,6 +197,8 @@ void tcp_server_init(void)
   sys_thread_new("tcpecho_thread", tcp_server_thread, NULL, 512, 4);
 #endif
 }
+uint8_t analysis_receivedData_thread(void const * argument);
+
 
 
 /* USER CODE END FunctionPrototypes */
@@ -233,8 +258,8 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-//  osThreadDef(myTask02, SensorSampleTask, osPriorityBelowNormal, 0, 512);
-//  myTask02Handle = osThreadCreate(osThread(myTask02), NULL);
+  osThreadDef(myTask02, analysis_receivedData_thread, osPriorityNormal, 0, 512);
+  myTask02Handle = osThreadCreate(osThread(myTask02), NULL);
 
 
   /* USER CODE END RTOS_THREADS */
@@ -243,7 +268,7 @@ void MX_FREERTOS_Init(void) {
 static uint8_t sensor_send_buff[100];
 static uint8_t sensor_send_length;
 static sensor_channel_status c_status;
-static uint8_t sensor_channel_enable[7][6];
+static __IO uint8_t sensor_channel_enable[7][6];
 static uint8_t sensor_channel_nums[7]={3,6,3,6,1,2,2};
 static Sensor_Type cur_sensor=LIS2MDL;
 
@@ -264,11 +289,28 @@ void StartDefaultTask(void const * argument)
   static uint8_t channel_index=0;
   __IO static int16_t QvarValue;
   static uint8_t state_back = 0;
-  uint8_t i=0;
+  uint8_t i=0,j=0;
 //  osDelay(2000);
 //  bsp_mqtt_init();
   uint16_t send_tick=0;
 //  mqtt_client_connect();
+  if(HAL_UART_Receive_IT(&huart3, (uint8_t *)aRxBuffer, 1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if(0==chry_ringbuffer_init(&rb, mempool, 1024)){
+//	  printf("success\r\n");
+  }
+  else
+  {
+//	  printf("error\r\n");
+  }
+  for(i=0;i<7;i++)
+  {
+	  for(j=0;j<sensor_channel_nums[i];j++)
+		  sensor_channel_enable[i][j]=1;
+
+  }
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   for(;;)
@@ -278,11 +320,16 @@ void StartDefaultTask(void const * argument)
 	  {
 		  send_tick=0;
 		  sensor_send_length=instruct_sensor_Handler(cur_sensor,&sensor_channel_enable[cur_sensor],sensor_channel_nums[cur_sensor],sensor_send_buff);
-		  printf("sensor_send_length=%d\n",sensor_send_length);
+//		  printf("sensor_send_length=%d\n",sensor_send_length);
+		  printf("channel:");
+		  for ( i = 0; i < 6; i++)
+		  {
+		    printf("%d:",sensor_channel_enable[cur_sensor][i]);
+		  }
+		  printf("\r\n");
 //		  read_all_sensor_data();
 //		   sensor_send_length=get_one_sensor_data(cur_sensor,sensor_send_buff,c_status);
 	  }
-
 //	  MX_MEMS_Process();
 	  osDelay(5);
 	  BSP_SENSOR_QVAR_GetValue(&QvarValue);
@@ -329,24 +376,76 @@ void StartDefaultTask(void const * argument)
 			break;
 	}
   printf("[QVAR state-> %d]\r\n",state_back);
-  printf("[cur_sensor : %d] [channel status:]",cur_sensor);
-  printf("\r\n");
-  printf("channel:");
+  printf("[cur_sensor -> %d] \n",cur_sensor);
+//  printf("\r\n");
+//  printf("channel:");
+//
+//    for ( i = 0; i < 6; i++)
+//  {
+//    printf("%d:",sensor_channel_enable[cur_sensor][i]);
+//  }
+//  printf("\r\n");
   // for ( i = 0; i < sensor_channel_nums[cur_sensor]; i++)
   // {
   //   printf("%d:",sensor_channel_enable[cur_sensor][i]);
   // }
-    for ( i = 0; i < 6; i++)
-  {
-    printf("%d:",sensor_channel_enable[cur_sensor][i]);
-  }
-  printf("\r\n");
   }
   /* USER CODE END StartDefaultTask */
 }
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+uint8_t analysis_receivedData_thread(void const * argument)
+{
+	uint8_t data[128];
+	 uint8_t len=0;
+	 uint8_t *ptr_index;
+	 uint8_t temp_sensor=0;
+	 uint8_t channel_index=0;
+	while(1){
+		len =chry_ringbuffer_read(&rb, data, 20);
+		if (len){
+//				printf("[C] read success, read %d byte\r\n",len);
+//				data[11]='\0';
+//			printf("%s\r\n",data);
+			ptr_index=strchr(data,':');
+			if(NULL !=strstr(data,"SENSOR"))
+			{
+
+				temp_sensor=*(ptr_index+1)-'1';
+
+				printf("temp_sensor=%d\n",temp_sensor);
+				cur_sensor=temp_sensor;
+			}
+			else if(NULL !=strstr(data,"channel"))
+			{
+
+				if(NULL !=strstr(data,"ON"))
+				{
+					channel_index=*(ptr_index+4)-'1';
+					printf("channel_index=%d\n",channel_index);
+					sensor_channel_enable[cur_sensor][channel_index]=1;
+				}
+				else if(NULL !=strstr(data,"OFF"))
+				{
+					channel_index=*(ptr_index+5)-'1';
+					printf("channel_index=%d\n",channel_index);
+					sensor_channel_enable[cur_sensor][channel_index]=0;
+				}
+
+			}
+		}
+		else
+		{
+//				printf("[C] read faild, no data in ringbuffer\r\n");
+
+
+		}
+		osDelay(100);
+	}
+}
+
+
 void SensorSampleTask(void const * argument)
 {
   for(;;)

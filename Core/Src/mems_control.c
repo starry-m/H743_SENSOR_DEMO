@@ -600,6 +600,7 @@ uint8_t instruct_sensor_Handler(Sensor_Type type,uint8_t *_sensor_channel_enable
 uint16_t i=0;
 	uint8_t length=0;
 	__IO UserFtoCtoI temp_fdata;
+	static uint8_t acc_flag1=1,acc_flag2=1;
 	switch(type)
 	{
 		case LIS2MDL:
@@ -615,21 +616,26 @@ uint16_t i=0;
                     printf("LIS2MDL:%d:%d:\r\n",i,LIS2MDL_mag[i]);
                     length +=4;
                 }
-
 			}
 
 			break;
 		case LSM6DSV16X:
-			if (IKS4A1_MOTION_SENSOR_GetAxes(1, MOTION_ACCELERO, &LSM6DSV16X_acceleration))
+			if(acc_flag1)
 			{
+				if (IKS4A1_MOTION_SENSOR_GetAxes(1, MOTION_ACCELERO, &LSM6DSV16X_acceleration))
+				{
 
+				}
+				IKS4A1_MOTION_SENSOR_Axes_2_int32(LSM6DSV16X_acc,LSM6DSV16X_acceleration);
 			}
-			if (IKS4A1_MOTION_SENSOR_GetAxes(1, MOTION_GYRO, &LSM6DSV16X_angular_velocity))
+			else
 			{
+				if (IKS4A1_MOTION_SENSOR_GetAxes(1, MOTION_GYRO, &LSM6DSV16X_angular_velocity))
+				{
 
+				}
+				IKS4A1_MOTION_SENSOR_Axes_2_int32(LSM6DSV16X_ang,LSM6DSV16X_angular_velocity);
 			}
-			IKS4A1_MOTION_SENSOR_Axes_2_int32(LSM6DSV16X_acc,LSM6DSV16X_acceleration);
-			IKS4A1_MOTION_SENSOR_Axes_2_int32(LSM6DSV16X_ang,LSM6DSV16X_angular_velocity);
 			for(i=0;i<sensor_channel_nums;i++)
 			{
 
@@ -638,19 +644,19 @@ uint16_t i=0;
                     if(i<3)
                     {
 //                    	u32_transfer_u8(LSM6DSV16X_acc[i],data+i*4);
+                    	if(acc_flag1)
                     	printf("LSM6DSV16X:%d:%d:\r\n",i,LSM6DSV16X_acc[i]);
                     }
-
                     else
                     {
 //                    	 u32_transfer_u8(LSM6DSV16X_ang[i],data+i*4);
+                    	if(0==acc_flag1)
                     	printf("LSM6DSV16X:%d:%d:\r\n",i,LSM6DSV16X_ang[i]);
                     }
-
                     length +=4;
                 }
 			}
-
+			acc_flag1=!acc_flag1;
 			break;
 		case LIS2DUXS12:
 			if (IKS4A1_MOTION_SENSOR_GetAxes(2, MOTION_ACCELERO, &LIS2DUXS12_acceleration))
@@ -666,116 +672,87 @@ uint16_t i=0;
                     printf("LIS2DUXS12:%d:%d:\r\n",i,LIS2DUXS12_acc[i]);
                     length +=4;
                 }
-
 			}
-
 			break;
 		case LSM6DSO16IS:
-			if (IKS4A1_MOTION_SENSOR_GetAxes(3, MOTION_ACCELERO, &LSM6DSO16IS_acceleration))
+			if(acc_flag2)
 			{
-
+				if (IKS4A1_MOTION_SENSOR_GetAxes(3, MOTION_ACCELERO, &LSM6DSO16IS_acceleration))
+				{
+				}
+				IKS4A1_MOTION_SENSOR_Axes_2_int32(LSM6DSO16IS_acc,LSM6DSO16IS_acceleration);
 			}
-			if (IKS4A1_MOTION_SENSOR_GetAxes(3, MOTION_GYRO, &LSM6DSO16IS_angular_velocity))
+			else
 			{
-
+				if (IKS4A1_MOTION_SENSOR_GetAxes(3, MOTION_GYRO, &LSM6DSO16IS_angular_velocity))
+				{
+				}
+				IKS4A1_MOTION_SENSOR_Axes_2_int32(LSM6DSO16IS_ang,LSM6DSO16IS_angular_velocity);
 			}
-			IKS4A1_MOTION_SENSOR_Axes_2_int32(LSM6DSO16IS_acc,LSM6DSO16IS_acceleration);
-			IKS4A1_MOTION_SENSOR_Axes_2_int32(LSM6DSO16IS_ang,LSM6DSO16IS_angular_velocity);
 			for(i=0;i<sensor_channel_nums;i++)
 			{
-
                 if(_sensor_channel_enable[i])
                 {
                 	  if(i<3)
 						{
 	//                    	u32_transfer_u8(LSM6DSV16X_acc[i],data+i*4);
+                		  if(acc_flag2)
 							printf("LSM6DSO16IS:%d:%d:\r\n",i,LSM6DSO16IS_acc[i]);
 						}
-
 						else
 						{
 	//                    	 u32_transfer_u8(LSM6DSV16X_ang[i],data+i*4);
+							if(0==acc_flag2)
 							printf("LSM6DSO16IS:%d:%d:\r\n",i,LSM6DSO16IS_ang[i]);
 						}
-
 						length +=4;
                 }
 			}
+			acc_flag2=!acc_flag2;
 			break;
 		case STTS22H:
 			if (IKS4A1_ENV_SENSOR_GetValue(0, ENV_TEMPERATURE, &STTS22H_temperature))
 			{
-
 			}
-
             if(0==_sensor_channel_enable[0])
                 break;
             printf("STTS22H:%.2f:\r\n",STTS22H_temperature);
-//			temp_fdata.fdata=STTS22H_temperature;
-//		    for (i = 0; i < 4; i++)
-//		    {
-//		    	data[i] = temp_fdata.ldata[i];
-//		    }
 		    length +=4;
 			break;
 		case LPS22DF:
 			if (IKS4A1_ENV_SENSOR_GetValue(1, ENV_TEMPERATURE, &LPS22DF_temperature))
 			{
-
 			}
 			if (IKS4A1_ENV_SENSOR_GetValue(1, ENV_PRESSURE, &LPS22DF_pressure))
 			{
-
 			}
-//			temp_fdata.fdata=LPS22DF_temperature;
              if(_sensor_channel_enable[0])
              {
-            	 printf("STTS22H:%d:%.2f:\r\n",0,LPS22DF_temperature);
-//                for (i = 0; i < 4; i++)
-//                {
-//                    data[i] = temp_fdata.ldata[i];
-//                }
+            	 printf("LPS22DF:%d:%.2f:\r\n",0,LPS22DF_temperature);
+
                 length +=4;
              }
-		    
-//			temp_fdata.fdata=LPS22DF_pressure;
+
             if(0==_sensor_channel_enable[1])
                 break;
-            printf("STTS22H:%d:%.2f:\r\n",1,LPS22DF_pressure);
-//		    for (i = 0; i < 4; i++)
-//		    {
-//		    	data[4+i] = temp_fdata.ldata[i];
-//		    }
+            printf("LPS22DF:%d:%.2f:\r\n",1,LPS22DF_pressure);
 		    length +=4;
 		break;
 		case SHT40AD1B:
 			if (IKS4A1_ENV_SENSOR_GetValue(2, ENV_TEMPERATURE, &SHT40AD1B_temperature))
 			{
-
 			}
 			if (IKS4A1_ENV_SENSOR_GetValue(2, ENV_HUMIDITY, &SHT40AD1B_humidity))
 			{
-
 			}
-
-//			temp_fdata.fdata=SHT40AD1B_temperature;
             if(_sensor_channel_enable[0])
              {
             	printf("SHT40AD1B:%d:%.2f:\r\n",0,SHT40AD1B_temperature);
-//                for (i = 0; i < 4; i++)
-//                {
-//                    data[i] = temp_fdata.ldata[i];
-//                }
                 length +=4;
              }
-//			temp_fdata.fdata=SHT40AD1B_humidity;
             if(0==_sensor_channel_enable[1])
                 break;
             printf("SHT40AD1B:%d:%.2f:\r\n",1,SHT40AD1B_humidity);
-//		    for (i = 0; i < 4; i++)
-//		    {
-//		    	data[4+i] = temp_fdata.ldata[i];
-//		    }
 		    length +=4;
 			break;
 		default:

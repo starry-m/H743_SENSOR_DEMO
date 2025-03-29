@@ -53,11 +53,13 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+//#include "chry_ringbuffer.h"
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
 extern ETH_HandleTypeDef heth;
+extern UART_HandleTypeDef huart3;
+//extern chry_ringbuffer_t rb;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -197,5 +199,17 @@ void ETH_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
+/**
+  * @brief This function handles USART3 global interrupt.
+  */
+void USART3_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART3_IRQn 0 */
 
+  /* USER CODE END USART3_IRQn 0 */
+  HAL_UART_IRQHandler(&huart3);
+  /* USER CODE BEGIN USART3_IRQn 1 */
+
+  /* USER CODE END USART3_IRQn 1 */
+}
 /* USER CODE END 1 */
